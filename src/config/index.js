@@ -29,9 +29,11 @@ const axiosBaseUrl = {};
 if (process.env.NODE_ENV === 'development') {
   axiosBaseUrl.url = '';
   axiosBaseUrl.uploadUrl = '';
+  axiosBaseUrl.delPrefix = false;
 } else {
   axiosBaseUrl.url = '';
   axiosBaseUrl.uploadUrl = '';
+  axiosBaseUrl.delPrefix = false;
 }
 
 export { axiosBaseUrl };
