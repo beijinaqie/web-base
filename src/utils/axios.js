@@ -27,6 +27,7 @@ const jumpToLogin = code => {
 
 // 正在进行中的请求列表
 const reqList = [];
+const duration = 500;
 
 /**
  * 阻止重复请求
@@ -35,10 +36,20 @@ const reqList = [];
  * @param {function} cancel - 请求中断函数
  * @param {string} errorMessage - 请求中断时需要显示的错误信息
  */
-const stopRepeatRequest = (reqList, url, cancel, errorMessage = '') =>
-  reqList.includes(url)
-    ? cancel(errorMessage)
-    : reqList.push(url);
+const stopRepeatRequest = (reqList, url, cancel, params, errorMessage = '') => {
+  for (const [index, req] of reqList.entries()) {
+    if (req.url === url && req.params === params) {
+      req.cancel(req.errorMessage);
+      reqList.splice(index, 1);
+    }
+  }
+  reqList.push({
+    url,
+    cancel,
+    errorMessage,
+    params
+  });
+};
 
 /**
  * 允许某个请求可以继续进行
@@ -46,8 +57,10 @@ const stopRepeatRequest = (reqList, url, cancel, errorMessage = '') =>
  * @param {string} url 请求地址
  */
 const allowRequest = (reqList, url) => {
-  // console.log(reqList.filter());
-  reqList.splice(reqList.findIndex(req => req === url), 1);
+  reqList.splice(
+    reqList.findIndex(req => req.url === url),
+    1
+  );
 };
 
 // 添加请求拦截器
@@ -69,8 +82,9 @@ Axios.interceptors.request.use(
     config.cancelToken = new axios.CancelToken(function(c) {
       cancel = c;
     });
-    // 阻止重复请求。当上个请求未完成时，相同的请求不会进行
-    stopRepeatRequest(reqList, config.url, cancel);
+    // 阻止重复请求。当发起一个新的相同请求时，上一个请求会被阻止掉
+    const params = JSON.stringify(config.params) + JSON.stringify(config.data);
+    stopRepeatRequest(reqList, config.url, cancel, params);
     return config;
   },
   error => {
@@ -85,7 +99,7 @@ Axios.interceptors.response.use(
     // 请求成功后1s后移除请求里面的列表
     setTimeout(() => {
       allowRequest(reqList, response.config.url);
-    }, 1000);
+    }, duration);
     switch (response.data.status) {
       case '45001':
         jumpToLogin('45001');
@@ -105,14 +119,14 @@ Axios.interceptors.response.use(
       // 对响应数据做点什么
       default:
         // 成功数据正常返回
-        if (response.data.status === '10000') {
-          return response.data.data;
+        if (response.data.status === '10000' || axiosBaseUrl.delPrefix) {
+          return axiosBaseUrl.delPrefix ? response.data : response.data.data;
         } else {
           // 非成功返回则包装一层返回给下级
           return {
             code: response.data.data?.code ?? response.data.status,
             success: false,
-            data: response.data.data,
+            data: axiosBaseUrl.delPrefix ? response.data : response.data.data,
             msg: response.data.data?.msg ?? response.data.desp
           };
         }
@@ -123,7 +137,7 @@ Axios.interceptors.response.use(
       // 请求失败后1s后移除请求里面的列表
       setTimeout(() => {
         allowRequest(reqList, error.config.url);
-      }, 1000);
+      }, duration);
     }
     // 对响应错误做点什么
     return Promise.reject(error.data);
@@ -134,13 +148,12 @@ const $http = {
   post(api, params, opts = {}) {
     return new Promise((resolve, reject) => {
       let url = axiosBaseUrl.url.includes('//') ? axiosBaseUrl.url : '';
-      if (api.includes('/competition/')) {
-        url += '/competition';
+      if (api.includes('/edge/') && !axiosBaseUrl.delPrefix) {
+        url += '/edge';
       } else {
         url += '';
       }
-      Axios
-        .post(url + api, params, opts)
+      Axios.post(url + api, params, opts)
         .then(res => {
           resolve(res);
         })
@@ -152,8 +165,8 @@ const $http = {
   get(api, params, opts = {}) {
     return new Promise((resolve, reject) => {
       let url = axiosBaseUrl.url.includes('//') ? axiosBaseUrl.url : '';
-      if (api.includes('/competition/')) {
-        url += '/competition';
+      if (api.includes('/edge/') && !axiosBaseUrl.delPrefix) {
+        url += '/edge';
       } else {
         url += '';
       }
@@ -172,8 +185,8 @@ const $http = {
   put(api, params, opts = {}) {
     return new Promise((resolve, reject) => {
       let url = axiosBaseUrl.url.includes('//') ? axiosBaseUrl.url : '';
-      if (api.includes('/competition/')) {
-        url += '/competition';
+      if (api.includes('/edge/') && !axiosBaseUrl.delPrefix) {
+        url += '/edge';
       } else {
         url += '';
       }
@@ -197,12 +210,36 @@ const $http = {
     }
     return new Promise((resolve, reject) => {
       let url = axiosBaseUrl.url.includes('//') ? axiosBaseUrl.url : '';
-      if (api.includes('/competition/')) {
-        url += '/competition';
+      if (api.includes('/edge/') && !axiosBaseUrl.delPrefix) {
+        url += '/edge';
       } else {
         url += '';
       }
       Axios.delete(url + api, configObj, opts)
+        .then(res => {
+          resolve(res);
+        })
+        .catch(err => {
+          reject(err);
+        });
+    });
+  },
+  patch(api, params, opts = {}) {
+    const configObj = {};
+    if (params && params.params) {
+      Object.assign(configObj, { params: params.params });
+    }
+    if (params && params.data) {
+      Object.assign(configObj, params.data);
+    }
+    return new Promise((resolve, reject) => {
+      let url = axiosBaseUrl.url.includes('//') ? axiosBaseUrl.url : '';
+      if (api.includes('/edge/') && !axiosBaseUrl.delPrefix) {
+        url += '/edge';
+      } else {
+        url += '';
+      }
+      Axios.patch(url + api, configObj, opts)
         .then(res => {
           resolve(res);
         })
