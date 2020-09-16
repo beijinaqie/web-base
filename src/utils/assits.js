@@ -15,6 +15,20 @@ export function passwordReg(min = 8, max = 32, options = '') {
   return reg;
 }
 
+// 域名验证
+// eslint-disable-next-line max-len
+export const regUrl = /^(?=^.{3,255}$)(http(s)?:\/\/)(www\.)?[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+(:\d+)*(\/\w+\.\w+)*([?&]\w+=[\w\u4e00-\u9fa5]*)*$/;
+
+// 匹配表情和空格
+export function descValidate(val) {
+  const descValidate = new RegExp(
+    '[^\u0020-\u007E\u00A0-\u00BE\u2E80-' +
+      '\uA4CF\uF900-\uFAFF\uFE30-\uFE4F\uFF00-' +
+      '\uFFEF\u0080-\u009F\u2000-\u201f\u2026\u2022\u20ac\r\n]'
+  );
+  return /^\s*$/.test(val) || descValidate.test(val);
+}
+
 // 判断参数是否是其中之一
 export function oneOf(value, validList) {
   for (let i = 0; i < validList.length; i++) {

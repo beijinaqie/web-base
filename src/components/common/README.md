@@ -15,6 +15,11 @@
   - [API](#api-2)
   - [事件](#事件-1)
   - [使用方法](#使用方法-2)
+- [Ani](#ani)
+  - [简介](#简介-3)
+  - [API](#api-3)
+  - [使用方法](#使用方法-3)
+  - [备注](#备注-1)
 
 <!-- /TOC -->
 
@@ -103,3 +108,30 @@ imgLsit = 'url1, url2'
 // imgList 为Array
 imgList = ['url1', 'url2'] 或者 [{ url: 'url1' }, { url: 'url2' }]
 ```
+
+# Ani
+
+## 简介
+
+列表动画
+
+## API
+
+参数|说明|类型|默认值
+:--|:--:|:--:|--:
+mode|动画模式(可选`right-left`、`left-right`、`bottom-top`、`top-bottom`、`rotateX`、`rotateY`、`rotateZ`、`scale`)|string|right-left
+
+## 使用方法  
+
+```js
+// 使用前请仔细查看备注
+<Ani mode="right-top">
+  <item v-for="(item, index) in list" :key="index" :data-index="index"></item>
+</Ani>
+```
+
+## 备注
+
++ 请务必保证渲染的列表包含`key`
++ 请保证列表中拥有`:data-index="index"`，其中`index`为索引
++ `mode`选项为动画模式，传入两种模式时，则表现为`[偶数，奇数]`对应所传入的动画效果`mode="right-left bottom-top"`
