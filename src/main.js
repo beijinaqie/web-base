@@ -6,15 +6,7 @@ import axios from '@/utils/axios';
 import Antd from 'ant-design-vue';
 import VueI18n from 'vue-i18n';
 import 'ant-design-vue/dist/antd.css';
-import { axiosBaseUrl } from '@/config/index';
 import CustomComponents from 'components/common/index';
-
-// poc加载
-if (process.env.VUE_APP_BUILD_MODE !== 'devops') {
-  import('web-gly-plugin/packages').then(({ default: component }) => {
-    Vue.use(component);
-  });
-}
 
 // 注册i18n
 Vue.use(VueI18n);
@@ -25,13 +17,9 @@ Vue.use(Antd);
 // 注册全局组件
 Vue.use(CustomComponents);
 
-// 将构建环境挂载到全局 development production devops(移动) poc(浪潮)
+// 将构建环境挂载到全局 development production
 Object.defineProperty(Vue.prototype, '$env', {
   value: process.env.VUE_APP_BUILD_MODE
-});
-// 挂载全局上传uploadUrl 上传时会用到
-Object.defineProperty(Vue.prototype, '$uploadUrl', {
-  value: axiosBaseUrl.uploadUrl
 });
 // 挂载全局事件总线 切记在组件销毁阶段取消事件监听
 Object.defineProperty(Vue.prototype, '$EventBus', { value: new Vue() });

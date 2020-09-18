@@ -1,24 +1,10 @@
 import axios from 'axios';
-import { statusMap, axiosBaseUrl } from '@/config/index';
 
 const Axios = axios.create({
   headers: {
     'Content-type': 'application/json'
   }
 });
-
-// const env = process.env.VUE_APP_BUILD_MODE;
-
-const jumpToLogin = code => {
-  // 清除vuex 和 浏览器内保存的缓存信息
-  window.$vm.$store.commit('common/clear');
-  // 报错信息
-  window.$vm.$message.error(statusMap.get(code));
-  // 跳传登录
-  setTimeout(() => {
-    window.$vm.$store.commit('common/to_login');
-  }, 3000);
-};
 
 // 正在进行中的请求列表
 const reqList = [];
@@ -66,11 +52,6 @@ Axios.interceptors.request.use(
     if (window.$vm.$store?.state?.common?.token) {
       config.headers.Authorization = window.$vm.$store.state.common.token ?? '';
     }
-    if (window.$vm.$store?.state?.common?.userInfo) {
-      config.headers.LesseeId =
-        window.$vm.$store.state.common.userInfo.tenantId ?? '';
-      config.headers.UserId = window.$vm.$store.state.common.userInfo.id ?? '';
-    }
     let cancel;
     // 设置cancelToken对象
     config.cancelToken = new axios.CancelToken(function(c) {
@@ -94,41 +75,7 @@ Axios.interceptors.response.use(
     setTimeout(() => {
       allowRequest(reqList, response.config.url);
     }, duration);
-    switch (response.data.status) {
-      // 无登录token
-      case '45000':
-        jumpToLogin('45000');
-        break;
-      case '45001':
-        jumpToLogin('45001');
-        break;
-      case '45002':
-        jumpToLogin('45002');
-        break;
-      case '45003':
-        jumpToLogin('45003');
-        break;
-      case '45006':
-        jumpToLogin('45006');
-        break;
-      case '46000':
-        jumpToLogin('46000');
-        break;
-      // 对响应数据做点什么
-      default:
-        // 成功数据正常返回
-        if (response.data.status === '10000' || axiosBaseUrl.delPrefix) {
-          return axiosBaseUrl.delPrefix ? response.data : response.data.data;
-        } else {
-          // 非成功返回则包装一层返回给下级
-          return {
-            code: response.data.data?.code ?? response.data.status,
-            success: false,
-            data: axiosBaseUrl.delPrefix ? response.data : response.data.data,
-            msg: response.data.data?.msg ?? response.data.desp
-          };
-        }
-    }
+    return response.data;
   },
   error => {
     if (error.config) {
@@ -142,20 +89,10 @@ Axios.interceptors.response.use(
   }
 );
 
-const calcUrlPrefix = api => {
-  let url = axiosBaseUrl.url.length ? axiosBaseUrl.url : '';
-  if (api.includes('/market/') && !axiosBaseUrl.delPrefix) {
-    url += '/market';
-  } else {
-    url += '';
-  }
-  return url;
-};
-
 const $http = {
   post(api, params, opts = {}) {
     return new Promise((resolve, reject) => {
-      Axios.post(calcUrlPrefix(api) + api, params, opts)
+      Axios.post(api, params, opts)
         .then(res => {
           resolve(res);
         })
@@ -166,7 +103,7 @@ const $http = {
   },
   get(api, params, opts = {}) {
     return new Promise((resolve, reject) => {
-      Axios.get(calcUrlPrefix(api) + api, {
+      Axios.get(api, {
         params,
         ...opts
       })
@@ -180,7 +117,7 @@ const $http = {
   },
   put(api, params, opts = {}) {
     return new Promise((resolve, reject) => {
-      Axios.put(calcUrlPrefix(api) + api, params, opts)
+      Axios.put(api, params, opts)
         .then(res => {
           resolve(res);
         })
@@ -199,7 +136,7 @@ const $http = {
       Object.assign(configObj, { data: params.data });
     }
     return new Promise((resolve, reject) => {
-      Axios.delete(calcUrlPrefix(api) + api, configObj, opts)
+      Axios.delete(api, configObj, opts)
         .then(res => {
           resolve(res);
         })
@@ -217,13 +154,7 @@ const $http = {
       Object.assign(configObj, params.data);
     }
     return new Promise((resolve, reject) => {
-      let url = axiosBaseUrl.url.length > 0 ? axiosBaseUrl.url : '';
-      if (api.includes('/market/') && !axiosBaseUrl.delPrefix) {
-        url += '/market';
-      } else {
-        url += '';
-      }
-      Axios.patch(url + api, configObj, opts)
+      Axios.patch(api, configObj, opts)
         .then(res => {
           resolve(res);
         })

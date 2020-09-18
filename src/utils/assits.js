@@ -155,36 +155,6 @@ export function scrollTop(el, from = 0, to, duration = 500, endCallback) {
   scroll(from, to, step);
 }
 
-// 配置面包屑导航中的路由
-export const otherRouters = router => {
-  if (router.currentPath.path === '/') {
-    return [
-      {
-        name: '首页',
-        path: '/'
-      }
-    ];
-  } else if (router.exPath.path === '/login') {
-    return [
-      {
-        name: router.currentPath.meta.title,
-        path: router.currentPath.path
-      }
-    ];
-  } else {
-    return [
-      {
-        name: router.exPath.meta.title,
-        path: router.exPath.path
-      },
-      {
-        name: router.currentPath.meta.title,
-        path: router.currentPath.path
-      }
-    ];
-  }
-};
-
 // 设置cookie
 export function setCookie(name, value) {
   const Days = 1;

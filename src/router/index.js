@@ -25,15 +25,6 @@ const routes = [
   }
 ];
 
-// 本地开发时启用本地登录
-if (process.env.VUE_APP_BUILD_MODE !== 'poc') {
-  routes.push({
-    path: '/login',
-    name: 'Login',
-    component: () => import('views/login/Login')
-  });
-}
-
 const router = new VueRouter({
   mode: 'history',
   base: process.env.BASE_URL,
@@ -43,7 +34,7 @@ const router = new VueRouter({
 router.beforeEach((to, from, next) => {
   const token = vuex.state.common.token;
   if (!token && to.meta?.auth) {
-    vuex.commit('common/to_login', { to, from, next });
+    next('/login');
   } else {
     next();
   }
