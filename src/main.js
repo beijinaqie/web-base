@@ -36,6 +36,7 @@ const i18n = new VueI18n({
   messages
 });
 
+// 测试
 // 将根组件实例挂载到$vm上，可在访问不到组件实例时，通过window属性进行访问
 window.$vm = new Vue({
   router,
